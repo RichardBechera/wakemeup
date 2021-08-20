@@ -30,6 +30,14 @@
         <a class="dismiss">🗙</a>
     </div>
 
-    <script src="_framework/blazor.server.js"></script>
+<script src="_framework/blazor.server.js"></script>
+<script>
+window.PlayAudio = (elementName) => {
+    document.getElementById(elementName).play();
+}
+window.PauseAudio = (elementName) => {
+    document.getElementById(elementName).pause();
+}
+</script>
 </body>
 </html>
