@@ -16,9 +16,19 @@
         <input @bind="messageInput" size="50" />
     </label>
 </div>
+<div>
+    <select @bind="soundToPlay">
+        @foreach (var sound in sounds)
+        {
+            <option value="@sound">@sound</option>
+        }
+    </select>
+</div>
 <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
 <button id="soundButton" @onclick="PlaySound">Click me!</button>
 <button id="stopButton" @onclick="PauseSound">Stop sound!</button>
+<button  @onclick="PlaySend">Send play</button>
+<button  @onclick="PauseSend">Stop send!</button>
 <hr>
 
 <ul id="messagesList">
@@ -27,12 +37,14 @@
         <li>@message</li>
     }
 </ul>
-<audio id="sound" src="/audio/Escape.mp3"/>
+<audio id="sound" src="/audio/@(soundToPlay).mp3"/>
 @code {
     private HubConnection hubConnection;
     private List<string> messages = new();
     private string userInput;
     private string messageInput;
+    private string soundToPlay { get; set; }
+    private List<string> sounds = new() {"Alarm", "Escape"};
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,12 +68,25 @@
             messages.Add(encodedMsg);   
             StateHasChanged();
         });
+        hubConnection.On("PauseSound", PauseSound);
+        hubConnection.On<string>("PlaySound", (sound) =>
+        {
+            soundToPlay = sound;
+            StateHasChanged();
+            return PlaySound();
+        });
 
         await hubConnection.StartAsync();
     }
 
     async Task Send() =>
         await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+    
+    async Task PlaySend() =>
+        await hubConnection.SendAsync("SendPlaySound", soundToPlay);
+    
+    async Task PauseSend() =>
+        await hubConnection.SendAsync("SendPauseSound");
 
     public bool IsConnected =>
         hubConnection.State == HubConnectionState.Connected;
@@ -78,6 +103,7 @@
     {
         await _jsRuntime.InvokeAsync<string>("PlayAudio", "sound");
     }
+    
     public async Task PauseSound()
     {
         await _jsRuntime.InvokeAsync<string>("PauseAudio", "sound");

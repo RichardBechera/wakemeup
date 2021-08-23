@@ -9,5 +9,15 @@ namespace Wakemeup.Hubs
         {
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
+        
+        public async Task SendPlaySound(string sound)
+        {
+            await Clients.All.SendAsync("PlaySound", sound);
+        }
+        
+        public async Task SendPauseSound()
+        {
+            await Clients.All.SendAsync("PauseSound");
+        }
     }
 }
